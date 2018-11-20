@@ -30,23 +30,24 @@ def barcode_img_gen(barcode_value):
 
 if __name__ == '__main__':
     counter = 1
-    x = 8
     with open('./barcode_images/barcode_spreadsheet.csv', 'w') as csvfile:
         file_writer = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         file_writer.writerow(['File_Name', 'Barcode_Value'])
-        x = x - 1
-        for y in range(43):
-            temp_val = barcode_value_gen(x)
-            temp_barcode_image = barcode_img_gen(temp_val)
+        for x in range(9,12):
+            x = x - 1
 
-            # print('Generated barcode: ' + temp_barcode_image.get_fullcode())
-            file_name = './barcode_images/code39_' + repr(counter)
-            file = temp_barcode_image.save(file_name)
-            file_writer.writerow([file_name, temp_barcode_image.get_fullcode()])
+            for y in range(1000):
+                temp_val = barcode_value_gen(x)
+                temp_barcode_image = barcode_img_gen(temp_val)
 
-            print('File ' + repr(counter) + ' Generated')
-            counter += 1
-            if counter == 5:
-                exit(0)
+                # print('Generated barcode: ' + temp_barcode_image.get_fullcode())
+                file_name = './barcode_images/code39_' + repr(counter)
+                file = temp_barcode_image.save(file_name)
+                file_writer.writerow(['code39_' + repr(counter), temp_barcode_image.get_fullcode()])
+
+                print('File ' + repr(counter) + ' Generated')
+                counter += 1
+                # if counter == 5:
+                #   break
 
     print('Finished Generating All Files!')
