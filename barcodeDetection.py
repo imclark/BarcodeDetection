@@ -43,22 +43,35 @@ def detect(filename):
     box = np.int0(cv2.boxPoints(rectangle))
 
     # extract the points needed to crop image
-    left  = box[0][0]
-    right = box[2][0]
-    top = box[1][1]
-    bottom = box[0][1]
+    point = find_bound(box)
 
-    print("Bounding points: \nLeft: ", left, "\nRight: ", right, "\nTop: ", top, "\nBottom: ", bottom)
+    print("Bounding points: \nLeft: ", point[0], "\nRight: ", point[1], "\nTop: ", point[2], "\nBottom: ", point[3])
 
     # crop the image down to the specified bounding box
-    crop = image[top:bottom, left:right]
-    cv2.imshow("Cropped", crop)
+    crop = image[point[2]-20:point[3]+20, point[0]-20:point[1]+20]
+    #$cv2.imshow("Cropped", crop)
     # cv2.drawContours(image, [box], -1, (255, 0, 0), 3)
     # cv2.imshow("Cropped", image)
-    cv2.waitKey(0)
+    #cv2.waitKey(0)
 
     # return the cropped image
     return crop
+
+
+# takes the points of a bounding box andd returns an array of [left, right, top, bottom]
+def find_bound(points):
+    one = []
+    two = []
+    for i in points:
+        one.append(i[0])
+        two.append(i[1])
+
+    xs = min(int(j) for j in one)
+    xl = max(int(k) for k in one)
+    ys = min(int(l) for l in two)
+    yl = max(int(m) for m in two)
+
+    return [xs, xl, ys, yl]
 
 
 if __name__ == '__main__':
@@ -67,4 +80,3 @@ if __name__ == '__main__':
     print("Received cropped image!")
     cv2.imshow("Result", result)
     cv2.waitKey(0)
-
