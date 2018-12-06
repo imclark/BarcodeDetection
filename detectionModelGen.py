@@ -30,7 +30,9 @@ def cnn_model_fn(features, labels, mode):
   # Output Tensor Shape: [batch_size, 50, 98, 32]
   pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=1)
 
-  bn_2 = tf.layers.batch_normalization(pool1, 1)
+  drop_1 = tf.layers.dropout(pool1, rate=0.25, training=mode == tf.estimator.ModeKeys.TRAIN)
+
+  bn_2 = tf.layers.batch_normalization(drop_1, 1)
   # Convolutional Layer #2
   # Computes 64 features using a 5x5 filter.
   # Padding is added to preserve width and height.
@@ -49,7 +51,9 @@ def cnn_model_fn(features, labels, mode):
   # Output Tensor Shape: [batch_size, 25, 49, 64]
   pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=1)
 
-  bn_3 = tf.layers.batch_normalization(pool2, 1)
+  drop_2 = tf.layers.dropout(pool2, rate=0.25, training=mode == tf.estimator.ModeKeys.TRAIN)
+
+  bn_3 = tf.layers.batch_normalization(drop_2, 1)
 
   # Convolutional Layer #3
   # Computes 64 features using a 5x5 filter.
@@ -69,8 +73,9 @@ def cnn_model_fn(features, labels, mode):
   # Output Tensor Shape: [batch_size,12.5, 24.5, 128]
   pool3 = tf.layers.max_pooling2d(inputs=conv3, pool_size=[2, 2], strides=1)
 
+  drop_3 = tf.layers.dropout(pool3, rate=0.25, training=mode == tf.estimator.ModeKeys.TRAIN)
 
-  bn_4 = tf.layers.batch_normalization(pool3, 1)
+  bn_4 = tf.layers.batch_normalization(drop_3, 1)
 
   # Convolutional Layer #4
   # Computes 64 features using a 5x5 filter.
@@ -90,25 +95,29 @@ def cnn_model_fn(features, labels, mode):
   # Output Tensor Shape: [batch_size,6.25, 12.25, 256]
   pool4 = tf.layers.max_pooling2d(inputs=conv4, pool_size=[2, 2], strides=1)
 
+  drop_4 = tf.layers.dropout(pool4, rate=0.25, training=mode == tf.estimator.ModeKeys.TRAIN)
+
   # Flatten tensor into a batch of vectors
   # Input Tensor Shape: [batch_size, 7, 7, 64]
   # Output Tensor Shape: [batch_size, 7 * 7 * 64]
-  pool4_flat = tf.reshape(pool4, [-1, 6.25 * 12.25 * 256])
+  pool4_flat = tf.reshape(drop_4, [-1, 6.25 * 12.25 * 256])
 
   # Dense Layer
   # Densely connected layer with 1024 neurons
   # Input Tensor Shape: [batch_size,  6.25 * 12.25 * 256]
   # Output Tensor Shape: [batch_size, 4096]
   dense = tf.layers.dense(inputs=pool4_flat, units=4096, activation=tf.nn.relu)
-  dense_2 = tf.layers.dense(inputs=dense, units=4096, activation=tf.nn.relu)
+  drop_fc_1 = tf.layers.dropout(dense, rate=0.25, training=mode == tf.estimator.ModeKeys.TRAIN)
+
+  dense_2 = tf.layers.dense(inputs=drop_fc_1, units=4096, activation=tf.nn.relu)
+  drop_fc_2 = tf.layers.dropout(dense_2, rate=0.25, training=mode == tf.estimator.ModeKeys.TRAIN)
 
   # Output Tensor Shape: [batch_size, 4096]
   # Output Tensor Shape: [batch_size, 468]
-  dense_3 = tf.layers.dense(inputs=dense_2, units=468, activation=tf.nn.relu)
+  dense_3 = tf.layers.dense(inputs=drop_fc_2, units=468, activation=tf.nn.relu)
 
-  # Add dropout operation; 0.6 probability that element will be kept
-  dropout = tf.layers.dropout(
-      inputs=dense_3, rate=0.4, training=mode == tf.estimator.ModeKeys.TRAIN)
+  # Add dropout operation; 0.25 probability that element will be kept
+  dropout = tf.layers.dropout(inputs=dense_3, rate=0.25, training=mode == tf.estimator.ModeKeys.TRAIN)
 
   # Logits layer
   # Input Tensor Shape: [batch_size, 1024]
@@ -146,14 +155,14 @@ def cnn_model_fn(features, labels, mode):
 
 def main(unused_argv):
   # Load training and eval data
-  mnist = tf.contrib.learn.datasets.load_dataset("mnist")
-  train_data = mnist.train.images  # Returns np.array
-  train_labels = np.asarray(mnist.train.labels, dtype=np.int32)
-  eval_data = mnist.test.images  # Returns np.array
-  eval_labels = np.asarray(mnist.test.labels, dtype=np.int32)
+  # mnist = tf.contrib.learn.datasets.load_dataset("mnist")
+  # train_data = mnist.train.images  # Returns np.array
+  # train_labels = np.asarray(mnist.train.labels, dtype=np.int32)
+  # eval_data = mnist.test.images  # Returns np.array
+  # eval_labels = np.asarray(mnist.test.labels, dtype=np.int32)
 
   # Create the Estimator
-  mnist_classifier = tf.estimator.Estimator(
+  barcode_classifier = tf.estimator.Estimator(
       model_fn=cnn_model_fn, model_dir="/tmp/mnist_convnet_model")
 
   # Set up logging for predictions
@@ -169,7 +178,7 @@ def main(unused_argv):
       batch_size=100,
       num_epochs=None,
       shuffle=True)
-  mnist_classifier.train(
+  barcode_classifier.train(
       input_fn=train_input_fn,
       steps=20000,
       hooks=[logging_hook])
@@ -177,7 +186,7 @@ def main(unused_argv):
   # Evaluate the model and print results
   eval_input_fn = tf.compat.v1.estimator.inputs.numpy_input_fn(
       x={"x": eval_data}, y=eval_labels, num_epochs=1, shuffle=False)
-  eval_results = mnist_classifier.evaluate(input_fn=eval_input_fn)
+  eval_results = barcode_classifier.evaluate(input_fn=eval_input_fn)
   print(eval_results)
 
 
