@@ -38,7 +38,7 @@ def barcode_img_gen(barcode_value):
     :return: the newly created barcode image
     """
     code_39 = barcode.get_barcode_class('code39')
-    return code_39(barcode_value, writer=ImageWriter())
+    return code_39(barcode_value, writer=ImageWriter(), add_checksum=False)
 
 
 def brightness_mod(image_file, brightness):
@@ -129,7 +129,7 @@ def image_mod(filename, count):
 
 if __name__ == '__main__':
     counter = 0
-    with open('./barcode_images/barcode_spreadsheet.csv', 'w') as csvfile:
+    with open('./barcode_images/csv/barcode_spreadsheet.csv', 'w') as csvfile:
         file_writer = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         file_writer.writerow(['File_Name', 'Barcode_Value'])
 
@@ -146,8 +146,5 @@ if __name__ == '__main__':
             sys.stdout.write("\rCreated image %i / " % z + "%i" % barcode_image_num)
             sys.stdout.flush()
             counter += 1
-
-            if z == 25:
-                break
 
     print('\n Finished Generating All Files!')
