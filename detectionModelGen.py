@@ -4,6 +4,7 @@ import cv2
 import re
 import pandas as pn
 import tensorflow as tf
+import glob
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -165,7 +166,7 @@ def images_in_folder(folder):
 def image_array(folder_path):
     array = []
     for class_dir in os.listdir(folder_path):
-        for image_path in images_in_folder(os.path.join(folder_path, class_dir)):
+        for image_path in glob.glob(class_dir):
             im = cv2.imread(image_path)
             gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
             array.append(gray)
@@ -176,7 +177,8 @@ def main(unused_argv):
     # Load training and eval data
     train_image_dir = input('training data dir path: ')
     train_data = image_array(train_image_dir)
-    csv_data = pn.read_csv("./barcode_images/barcode_spreadsheet.csv")
+    csv_file_dir = input('training data labels path: ')
+    csv_data = pn.read_csv(csv_file_dir)
     train_labels = np.asarray(csv_data['Barcode_Value'], dtype=np.int32)
     # eval_data = mnist.test.images  # Returns np.array
     # eval_labels = np.asarray(mnist.test.labels, dtype=np.int32)
