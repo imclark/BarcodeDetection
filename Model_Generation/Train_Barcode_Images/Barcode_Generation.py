@@ -139,11 +139,12 @@ if __name__ == '__main__':
 
             file_name = './barcode_images/code39_' + repr(counter)
             file = temp_barcode_image.save(file_name)
-            file_writer.writerow(['code39_' + repr(counter), temp_barcode_image.get_fullcode()])
+
+            file_writer.writerow(['code39_' + repr(counter) + '.png', temp_barcode_image.get_fullcode()])
 
             image_mod(file_name, z)
 
-            sys.stdout.write("\rCreated image %i / " % z + "%i" % barcode_image_num)
+            sys.stdout.write("\rCreated image %i / " % (z +1) + "%i" % barcode_image_num)
             sys.stdout.flush()
             counter += 1
 
