@@ -164,13 +164,27 @@ def images_in_folder(folder):
 
 # takes in a folder path and goes through it and returns the images in it that match the allowed types of images
 def image_array(folder_path):
-    array = []
+    array = list()
     for class_dir in os.listdir(folder_path):
         for image_path in glob.glob(class_dir):
             im = cv2.imread(image_path)
             gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
             array.append(gray)
-    return np.array(array)
+    return np.asarray(array, dtype=np.int32)
+
+def one_hot_encoding(csv_labels):
+    value_set = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    char_to_int = dict((c, i) for i, c in enumerate(value_set))
+    labels = list()
+    for label in csv_labels:
+        int_encoded = [char_to_int[char] for char in label]
+        one_hot_encoded = list()
+        for value in int_encoded:
+            letter = [0 for _ in range(len(value_set))]
+            letter[value] = 1
+            one_hot_encoded.append(letter)
+        labels.append(one_hot_encoded)
+    return np.asanyarray(labels, dtype=np.int32)
 
 
 def main(unused_argv):
@@ -179,19 +193,19 @@ def main(unused_argv):
     train_data = image_array(train_image_dir)
     csv_file_dir = input('training data labels path: ')
     csv_data = pn.read_csv(csv_file_dir)
-    train_labels = np.asarray(csv_data['Barcode_Value'], dtype=np.int32)
+    train_labels = one_hot_encoding(csv_data['Barcode_Value'])
     # eval_data = mnist.test.images  # Returns np.array
     # eval_labels = np.asarray(mnist.test.labels, dtype=np.int32)
 
     # Create the Estimator
     barcode_classifier = tf.estimator.Estimator(
-        model_fn=cnn_model_fn, model_dir="/tmp/mnist_convnet_model")
+        model_fn=cnn_model_fn, model_dir="/tmp/barcode_convnet_model")
 
     # Set up logging for predictions
     # Log the values in the "Softmax" tensor with label "probabilities"
     tensors_to_log = {"probabilities": "softmax_tensor"}
     logging_hook = tf.train.LoggingTensorHook(
-        tensors=tensors_to_log, every_n_iter=50)
+        tensors=tensors_to_log, every_n_iter=100)
 
     # Train the model
     train_input_fn = tf.estimator.inputs.numpy_input_fn(
