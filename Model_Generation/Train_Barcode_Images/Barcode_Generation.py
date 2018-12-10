@@ -92,6 +92,19 @@ def translate(image_file, x, y):
     return cv2.warpAffine(image_file, matrix, (cols, rows))
 
 
+def resize(image_file):
+    """
+    will resize the image to a usable size
+
+
+    :param image_file: the image to be resized
+    :return: an image of size 100 x 196
+    """
+    image_file = image_file[0:196, 0:635]
+    image_file = cv2.resize(image_file, (196, 100))
+    return image_file
+
+
 def image_mod(filename, count):
     """
     base method for modifying the training images
@@ -101,6 +114,8 @@ def image_mod(filename, count):
     :return: the modded image
     """
     img = cv2.imread(filename + '.png')
+
+    img = resize(img)
 
     if count / barcode_image_num >= 0.5:
         img = rotate(img, 180)
